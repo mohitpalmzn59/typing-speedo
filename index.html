@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Typing Speed Test</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f4f7f6;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .container {
+            background-color: #fff;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            width: 100%;
+            max-width: 600px;
+            text-align: center;
+        }
+        h1 {
+            color: #333;
+            margin-bottom: 20px;
+        }
+        #text-display {
+            font-size: 1.2rem;
+            background-color: #f9f9f9;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            letter-spacing: 1px;
+            text-align: left;
+            line-height: 1.5;
+        }
+        .correct { color: green; }
+        .incorrect { color: red; background-color: #ffcccc; }
+        #input-field {
+            width: 100%;
+            padding: 12px;
+            font-size: 1.1rem;
+            border: 2px solid #ccc;
+            border-radius: 5px;
+            box-sizing: border-box;
+            outline: none;
+        }
+        #input-field:focus {
+            border-color: #007bff;
+        }
+        .stats {
+            display: flex;
+            justify-content: space-around;
+            margin-top: 20px;
+            font-size: 1.1rem;
+            font-weight: bold;
+        }
+        button {
+            margin-top: 20px;
+            padding: 10px 20px;
+            font-size: 1rem;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Typing Speed Test</h1>
+    <div id="text-display">Loading text...</div>
+    <textarea id="input-field" placeholder="Yahan type karna shuru karein..." rows="3"></textarea>
+    
+    <div class="stats">
+        <div>WPM: <span id="wpm">0</span></div>
+        <div>Accuracy: <span id="accuracy">100</span>%</div>
+        <div>Time: <span id="timer">60</span>s</div>
+    </div>
+    
+    <button id="reset-btn">Restart</button>
+</div>
+
+<script>
+    const sampleTexts = [
+        "The quick brown fox jumps over the lazy dog.",
+        "Success is not final, failure is not fatal: it is the courage to continue that counts.",
+        "Technology is best when it brings people together.",
+        "Practice makes perfect. The more you type, the better and faster you will become."
+    ];
+
+    let timer = 60;
+    let timerInterval = null;
+    let isTimeRunning = false;
+    let selectedText = "";
+
+    const textDisplay = document.getElementById("text-display");
+    const inputField = document.getElementById("input-field");
+    const wpmLabel = document.getElementById("wpm");
+    const accuracyLabel = document.getElementById("accuracy");
+    const timerLabel = document.getElementById("timer");
+    const resetBtn = document.getElementById("reset-btn");
+
+    function initGame() {
+        clearInterval(timerInterval);
+        timer = 60;
+        isTimeRunning = false;
+        inputField.disabled = false;
+        inputField.value = "";
+        wpmLabel.innerText = "0";
+        accuracyLabel.innerText = "100";
+        timerLabel.innerText = timer;
+        
+        selectedText = sampleTexts[Math.floor(Math.random() * sampleTexts.length)];
+        textDisplay.innerHTML = selectedText.split('').map(char => `<span>${char}</span>`).join('');
+    }
+
+    function startTimer() {
+        if (!isTimeRunning) {
+            isTimeRunning = true;
+            timerInterval = setInterval(() => {
+                if (timer > 0) {
+                    timer--;
+                    timerLabel.innerText = timer;
+                    calculateStats();
+                } else {
+                    clearInterval(timerInterval);
+                    inputField.disabled = true;
+                }
+            }, 1000);
+        }
+    }
+
+    function calculateStats() {
+        const textSpans = textDisplay.querySelectorAll("span");
+        const inputValue = inputField.value.split("");
+        
+        let correctChars = 0;
+        let totalTyped = inputValue.length;
+
+        textSpans.forEach((span, index) => {
+            const char = inputValue[index];
+            if (char == null) {
+                span.classList.remove("correct", "incorrect");
+            } else if (char === span.innerText) {
+                span.classList.add("correct");
+                span.classList.remove("incorrect");
+                correctChars++;
+            } else {
+                span.classList.add("incorrect");
+                span.classList.remove("correct");
+            }
+        });
+
+        // WPM Calculation (Standard: 5 characters = 1 word)
+        let timeElapsed = (60 - timer) / 60; 
+        if (timeElapsed > 0 && totalTyped > 0) {
+            let wpm = Math.round((correctChars / 5) / timeElapsed);
+            wpmLabel.innerText = wpm >= 0 ? wpm : 0;
+        }
+
+        // Accuracy Calculation
+        if (totalTyped > 0) {
+            let accuracy = Math.round((correctChars / totalTyped) * 100);
+            accuracyLabel.innerText = accuracy >= 0 ? accuracy : 0;
+        }
+    }
+
+    inputField.addEventListener("input", () => {
+        startTimer();
+        calculateStats();
+    });
+
+    resetBtn.addEventListener("click", initGame);
+
+    // Start the app on load
+    initGame();
+</script>
+
+</body>
+</html>
